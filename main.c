@@ -6,8 +6,8 @@ int number_of_process;
 int memsize[4096] = {0};
 int num_holes;
 int* getholes();
-void best_fit(int blocksize_num);
-int* random_request (int blocksize_num);
+void best_fit(int number_of_process);
+int* random_request (int number_of_process);
 
 int main (int argc, char** argv) {
 	// if more or less than one argument, prints error
@@ -69,31 +69,63 @@ int* getholes() {
 	return holes;
 } 
 
-void best_fit(int blocksize_num) {
+void best_fit(int number_of_process) {
 	int* holes;
 	int* proc_req;
 	int i;
 	int j;
-	int num_of_loop = 1 << 20;
+	int k;
+	int num_of_loop = 1 << 20/number_of_process;
 
 	for (j=0;j<num_of_loop;j++) {
 		holes = getholes();
 		for (i=0;i<num_holes * 2; i = i + 2) {
 			printf("blocknumber %d, start %d, end %d \n", i /2, holes[i], holes[i+1]);
 		}
-		proc_req = random_request(blocksize_num);
-		for (i=0;i<blocksize_num;i++) {
+		proc_req = random_request(number_of_process);
+		for (i=0;i<number_of_process;i++) {
 			printf("Process %d \n", proc_req[i]);
 		}
+		int hold_this = -1;
+		int hole_size;
+		for (i=0;i<number_of_process;i++) {
+			hold_this = -1;
+			for (k=0;k<num_holes * 2; k = k + 2) {
+				hole_size = holes[k + 1] - holes[k];
+				if ((proc_req[i] < hole_size) && (hold_this == -1)) {
+					hold_this = k;
+				}
+				if ((hold_this != -1) && ((holes[hold_this+1] - holes[hold_this]) > hole_size)) {
+					hold_this = k;
+				}
+			}
+			if (hold_this == -1) {
+				break;
+			}
+			else {
+				holes[hold_this] = holes[hold_this] + proc_req[i];
+			}
+		}
+
+		if (hold_this != -1) {
+
+		}
 	}
+
+
 }
 
-int* random_request (int blocksize_num) {
-	int* req_array = (int *) malloc (blocksize_num * sizeof(int));
+int* random_request (int number_of_process) {
+	int* req_array = (int *) malloc (number_of_process * sizeof(int));
 	int i;
-	for (i=0;i<blocksize_num;i++) {
+	for (i=0;i<number_of_process;i++) {
 		int t = (rand() % 90) + 10;
 		req_array[i] = t;
 	}
 	return req_array;
+}
+
+void allocate_mem (int* updated_holes) {
+	int* old_holes = getholes();
+	
 }
